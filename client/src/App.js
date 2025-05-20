@@ -1,46 +1,71 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from 'react';
 
-const API_URL = "https://task-manager-wscv.onrender.com/api/tasks";
+const API_URL = 'https://task-manager-wscv.onrender.com/api/tasks';
 
 function App() {
   const [tasks, setTasks] = useState([]);
-  const [title, setTitle] = useState("");
+  const [title, setTitle] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  // Fetch all tasks
+  // Fetch all tasks from backend
   const fetchTasks = async () => {
     try {
+      setLoading(true);
       const res = await fetch(API_URL);
       const data = await res.json();
       setTasks(data);
-    } catch (err) {
-      console.error("Failed to fetch tasks:", err);
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching tasks:', error);
+      setLoading(false);
     }
   };
 
-  // Add new task
-  const addTask = async () => {
+  // Create a new task
+  const createTask = async () => {
     if (!title.trim()) return;
     try {
       const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify({ title }),
       });
+
       const newTask = await res.json();
       setTasks([...tasks, newTask]);
-      setTitle("");
-    } catch (err) {
-      console.error("Failed to add task:", err);
+      setTitle('');
+    } catch (error) {
+      console.error('Error creating task:', error);
     }
   };
 
-  // Delete task
+  // Delete a task
   const deleteTask = async (id) => {
     try {
-      await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
       setTasks(tasks.filter(task => task._id !== id));
-    } catch (err) {
-      console.error("Failed to delete task:", err);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+    }
+  };
+
+  // Update a task (toggle completed)
+  const toggleTask = async (task) => {
+    try {
+      const res = await fetch(`${API_URL}/${task._id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ completed: !task.completed }),
+      });
+
+      const updatedTask = await res.json();
+      setTasks(tasks.map(t => (t._id === updatedTask._id ? updatedTask : t)));
+    } catch (error) {
+      console.error('Error updating task:', error);
     }
   };
 
@@ -49,23 +74,41 @@ function App() {
   }, []);
 
   return (
-    <div style={{ padding: 20 }}>
-      <h1>Task Manager</h1>
-      <input
-        type="text"
-        value={title}
-        onChange={e => setTitle(e.target.value)}
-        placeholder="Enter task title"
-      />
-      <button onClick={addTask}>Add Task</button>
-      <ul>
-        {tasks.map(task => (
-          <li key={task._id}>
-            {task.title}
-            <button onClick={() => deleteTask(task._id)} style={{ marginLeft: 10 }}>Delete</button>
-          </li>
-        ))}
-      </ul>
+    <div style={{ maxWidth: 600, margin: '0 auto', padding: '1rem' }}>
+      <h1>📝 Task Manager</h1>
+
+      <div style={{ display: 'flex', marginBottom: '1rem' }}>
+        <input
+          type="text"
+          placeholder="Enter task title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          style={{ flex: 1, padding: '0.5rem' }}
+        />
+        <button onClick={createTask} style={{ marginLeft: '0.5rem' }}>Add</button>
+      </div>
+
+      {loading ? (
+        <p>Loading tasks...</p>
+      ) : (
+        <ul>
+          {tasks.map(task => (
+            <li key={task._id} style={{ marginBottom: '0.5rem' }}>
+              <span
+                onClick={() => toggleTask(task)}
+                style={{
+                  textDecoration: task.completed ? 'line-through' : 'none',
+                  cursor: 'pointer',
+                  marginRight: '1rem',
+                }}
+              >
+                {task.title}
+              </span>
+              <button onClick={() => deleteTask(task._id)}>❌</button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
