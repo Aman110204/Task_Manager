@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
-const API_URL = 'https://task-manager-wscv.onrender.com';
+const API_URL = 'https://task-manager-wscv.onrender.com/api/Tasks';
 
 function App() {
   const [tasks, setTasks] = useState([]);
