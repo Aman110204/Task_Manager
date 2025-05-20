@@ -1,32 +1,47 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect } from "react";
 
-const API_URL = 'https://task-manager-wscv.onrender.com/api/Tasks';
+const API_URL = "https://task-manager-wscv.onrender.com/api/tasks";
 
 function App() {
   const [tasks, setTasks] = useState([]);
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState("");
 
+  // Fetch all tasks
   const fetchTasks = async () => {
-    const res = await axios.get(API_URL);
-    setTasks(res.data);
+    try {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+      setTasks(data);
+    } catch (err) {
+      console.error("Failed to fetch tasks:", err);
+    }
   };
 
+  // Add new task
   const addTask = async () => {
-    if (!title) return;
-    const res = await axios.post(API_URL, { title });
-    setTasks([...tasks, res.data]);
-    setTitle('');
+    if (!title.trim()) return;
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title }),
+      });
+      const newTask = await res.json();
+      setTasks([...tasks, newTask]);
+      setTitle("");
+    } catch (err) {
+      console.error("Failed to add task:", err);
+    }
   };
 
-  const toggleComplete = async (id, completed) => {
-    const res = await axios.put(`${API_URL}/${id}`, { completed: !completed });
-    setTasks(tasks.map(t => (t._id === id ? res.data : t)));
-  };
-
+  // Delete task
   const deleteTask = async (id) => {
-    await axios.delete(`${API_URL}/${id}`);
-    setTasks(tasks.filter(t => t._id !== id));
+    try {
+      await fetch(`${API_URL}/${id}`, { method: "DELETE" });
+      setTasks(tasks.filter(task => task._id !== id));
+    } catch (err) {
+      console.error("Failed to delete task:", err);
+    }
   };
 
   useEffect(() => {
@@ -34,26 +49,20 @@ function App() {
   }, []);
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>Task Manager</h2>
+    <div style={{ padding: 20 }}>
+      <h1>Task Manager</h1>
       <input
+        type="text"
         value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Add task"
+        onChange={e => setTitle(e.target.value)}
+        placeholder="Enter task title"
       />
-      <button onClick={addTask}>Add</button>
+      <button onClick={addTask}>Add Task</button>
       <ul>
         {tasks.map(task => (
           <li key={task._id}>
-            <span
-              style={{ textDecoration: task.completed ? 'line-through' : 'none', cursor: 'pointer' }}
-              onClick={() => toggleComplete(task._id, task.completed)}
-            >
-              {task.title}
-            </span>
-            <button onClick={() => deleteTask(task._id)} style={{ marginLeft: '10px' }}>
-              ❌
-            </button>
+            {task.title}
+            <button onClick={() => deleteTask(task._id)} style={{ marginLeft: 10 }}>Delete</button>
           </li>
         ))}
       </ul>
