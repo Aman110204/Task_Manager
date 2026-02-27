@@ -1,6 +1,6 @@
 {
-  "short_name": "TaskMgr",
-  "name": "Local Task Manager",
+  "short_name": "TaskFlow",
+  "name": "TaskFlow Productivity App",
   "icons": [
     {
       "src": "favicon.ico",
@@ -20,6 +20,6 @@
   ],
   "start_url": ".",
   "display": "standalone",
-  "theme_color": "#0d9488",
-  "background_color": "#f4f6fb"
+  "theme_color": "#0f766e",
+  "background_color": "#f5f8f5"
 }
