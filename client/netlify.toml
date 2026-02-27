@@ -1,6 +1,8 @@
 [build]
-  command = "npm run build:prod"
-  publish = "dist"
+  base = "client"
+  command = "npm run build"
+  publish = "build"
+
 
 [[headers]]
   for = "/*"
